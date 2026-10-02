@@ -1,11 +1,8 @@
 #include "co.h"
 
 #include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 #include <threads.h>
 
