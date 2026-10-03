@@ -30,50 +30,6 @@ typedef struct CO_Context {
     bool dynamic_stack;
 } CO_Context;
 
-
-// ------------------------------------------------------
-// Inline ASM macros
-// ------------------------------------------------------
-
-//pushes registers onto stack, saves esp, ebp to X (where X should ideally be
-//somewhat compatible with saved_registers)
-//
-//IF YOU CHANGE THIS CHANGE ALSO THE CO_yield CODE
-#define SAVE_REGISTERS(X) asm ( \
-        "push %%rax;" \
-        "push %%rbx;" \
-        "push %%rcx;" \
-        "push %%rdx;" \
-        "push %%rsi;" \
-        "push %%rdi;" \
-        "push %%r8;" \
-        "push %%r9;" \
-        "push %%r10;" \
-        "push %%r11;" \
-        "push %%r12;" \
-        "push %%r13;" \
-        "push %%r14;" \
-        "push %%r15;" \
-        "sub  $160, %%rsp;"\
-        "movdqa %%xmm6, 144(%%rsp);" \
-        "movdqa %%xmm7, 128(%%rsp);" \
-        "movdqa %%xmm8, 112(%%rsp);" \
-        "movdqa %%xmm9, 96(%%rsp);" \
-        "movdqa %%xmm10, 80(%%rsp);" \
-        "movdqa %%xmm11, 64(%%rsp);" \
-        "movdqa %%xmm12, 48(%%rsp);" \
-        "movdqa %%xmm13, 32(%%rsp);" \
-        "movdqa %%xmm14, 16(%%rsp);" \
-        "movdqa %%xmm15, 0(%%rsp);" \
-        "push %%rbp;" \
-        "push %%rsp;" \
-        "movq %%rbp, %0;" \
-        "movq %%rsp, 8+%P0;" \
-        : \
-        : "o" (X) \
-        : "memory" \
-    ) \
-
 // ------------------------------------------------------
 // Globals (for internal use)
 // ------------------------------------------------------
@@ -120,29 +76,61 @@ CO_Context* CO_start(void (*f)(void)) {
     current_context->run_state = CO_RUNNING;
 
 	char* stack_top = ((char*)current_context->stack + STACK_SIZE - 32);      //top of stack = bottom of stack + STACK_SIZE
+	Registers* caller = &(current_context->caller_registers);
 
-    // save current registers onto stack
-    SAVE_REGISTERS((current_context->caller_registers));
+    asm volatile (
+        "push %%rax;" \
+        "push %%rbx;" \
+        "push %%rcx;" \
+        "push %%rdx;" \
+        "push %%rsi;" \
+        "push %%rdi;" \
+        "push %%r8;" \
+        "push %%r9;" \
+        "push %%r10;" \
+        "push %%r11;" \
+        "push %%r12;" \
+        "push %%r13;" \
+        "push %%r14;" \
+        "push %%r15;" \
+        "sub  $176, %%rsp;"\
+        "movdqa %%xmm6,  160(%%rsp);" \
+        "movdqa %%xmm7,  144(%%rsp);" \
+        "movdqa %%xmm8,  128(%%rsp);" \
+        "movdqa %%xmm9,  112(%%rsp);" \
+        "movdqa %%xmm10,  96(%%rsp);" \
+        "movdqa %%xmm11,  80(%%rsp);" \
+        "movdqa %%xmm12,  64(%%rsp);" \
+        "movdqa %%xmm13,  48(%%rsp);" \
+        "movdqa %%xmm14,  32(%%rsp);" \
+        "movdqa %%xmm15,  16(%%rsp);" \
+		"stmxcsr 0(%%rsp);"
+		"fnstcw 4(%%rsp);"
+        "push %%rbp;" \
+        "push %%rsp;" \
+        "movq %%rbp, (%%rdx);" \
+        "movq %%rsp, 8(%%rdx);" \
 
-    asm(
 		"movq %%rsp, %%rbp;"
-        "movq %1, %%rsp;"    // set stack pointer to the new stack
-        "call *%0;"         // call 'f', putting the return address as the
+        "movq %%rcx, %%rsp;"    // set stack pointer to the new stack
+        "call *%%rax;"         // call 'f', putting the return address as the
                             // first item on the new stack
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
-        "movdqa 144(%%rsp), %%xmm6;" \
-        "movdqa 128(%%rsp), %%xmm7;" \
-        "movdqa 112(%%rsp), %%xmm8;" \
-        "movdqa 96(%%rsp), %%xmm9;" \
-        "movdqa 80(%%rsp), %%xmm10;" \
-        "movdqa 64(%%rsp), %%xmm11;" \
-        "movdqa 48(%%rsp), %%xmm12;" \
-        "movdqa 32(%%rsp), %%xmm13;" \
-        "movdqa 16(%%rsp), %%xmm14;" \
-        "movdqa 0(%%rsp), %%xmm15;" \
-        "add $160, %%rsp;"
+		"ldmxcsr 0(%%rsp);"
+		"fldcw 4(%%rsp);"
+        "movdqa 160(%%rsp), %%xmm6;" \
+        "movdqa 144(%%rsp), %%xmm7;" \
+        "movdqa 128(%%rsp), %%xmm8;" \
+        "movdqa 112(%%rsp), %%xmm9;" \
+        "movdqa  96(%%rsp), %%xmm10;" \
+        "movdqa  80(%%rsp), %%xmm11;" \
+        "movdqa  64(%%rsp), %%xmm12;" \
+        "movdqa  48(%%rsp), %%xmm13;" \
+        "movdqa  32(%%rsp), %%xmm14;" \
+        "movdqa  16(%%rsp), %%xmm15;" \
+        "add $176, %%rsp;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -156,11 +144,19 @@ CO_Context* CO_start(void (*f)(void)) {
         "pop  %%rdx;"
         "pop  %%rcx;"
         "pop  %%rbx;"
-		"pop %%rax;"
-        :
-        : "r" (f),
-          "r" (stack_top)
-        : "%rax"
+		"pop  %%rax;"
+        : "+a" (f),
+          "+c" (stack_top),
+		  "+d" (caller)
+		:
+        : "xmm0",
+		  "xmm1",
+		  "xmm2",
+		  "xmm3",
+		  "xmm4",
+		  "xmm5",
+		  "cc",
+		  "memory"
     );
 
     // yield sets this to CO_PAUSED, so if it is still CO_RUNNING, we finished
@@ -180,14 +176,20 @@ void CO_yield() {
            && current_context->run_state == CO_RUNNING);
 
 	char* ret_ptr = ((char*)current_context->stack + STACK_SIZE - 32 - sizeof(void*));  // first thing on stack = top of stack - sizeof(ptr)
+	Registers* caller = &(current_context->caller_registers);
+	Registers* callee = &(current_context->callee_registers);
 
     // set state so that the others know that we yielded
     current_context->run_state = CO_PAUSED;
     // save 
-    asm(
+    asm volatile (
+		"sub $8, %%rsp;"
+		"push %%rax;"
+		"add $16, %%rsp;"
 		"lea _continue%=(%%rip), %%rax;"
 		"push %%rax;"
 		"sub $8, %%rsp;"
+		"mov (%%rsp), %%rax;"
 
 		// SAVE_REGISTERS except inlined
         "push %%rax;"
@@ -204,28 +206,39 @@ void CO_yield() {
         "push %%r13;"
         "push %%r14;"
         "push %%r15;"
-        "sub  $160, %%rsp;"\
-        "movdqa %%xmm6, 144(%%rsp);" \
-        "movdqa %%xmm7, 128(%%rsp);" \
-        "movdqa %%xmm8, 112(%%rsp);" \
-        "movdqa %%xmm9, 96(%%rsp);" \
-        "movdqa %%xmm10, 80(%%rsp);" \
-        "movdqa %%xmm11, 64(%%rsp);" \
-        "movdqa %%xmm12, 48(%%rsp);" \
-        "movdqa %%xmm13, 32(%%rsp);" \
-        "movdqa %%xmm14, 16(%%rsp);" \
-        "movdqa %%xmm15, 0(%%rsp);" \
+        "sub  $176, %%rsp;"\
+        "movdqa %%xmm6,  160(%%rsp);" \
+        "movdqa %%xmm7,  144(%%rsp);" \
+        "movdqa %%xmm8,  128(%%rsp);" \
+        "movdqa %%xmm9,  112(%%rsp);" \
+        "movdqa %%xmm10,  96(%%rsp);" \
+        "movdqa %%xmm11,  80(%%rsp);" \
+        "movdqa %%xmm12,  64(%%rsp);" \
+        "movdqa %%xmm13,  48(%%rsp);" \
+        "movdqa %%xmm14,  32(%%rsp);" \
+        "movdqa %%xmm15,  16(%%rsp);" \
+		"stmxcsr 0(%%rsp);"
+		"fnstcw 4(%%rsp);"
         "push %%rbp;"
         "push %%rsp;"
-        "movq %%rbp, %1;"
-        "movq %%rsp, 8+%P1;"
+        "movq %%rbp, (%%rcx);"
+        "movq %%rsp, 8(%%rcx);"
 
-        "movq 8+%P2, %%rbp;"
-        "jmp *%0;"
+        "movq 8(%%rdx), %%rbp;"
+        "jmp *(%%rax);"
 		"_continue%=:"
+        : "+a" (ret_ptr),
+		  "+c" (callee),
+		  "+d" (caller)
         :
-        : "m" (*ret_ptr), "m" (current_context->callee_registers), "m" (current_context->caller_registers)
-		: "%rax"
+        : "xmm0",
+		  "xmm1",
+		  "xmm2",
+		  "xmm3",
+		  "xmm4",
+		  "xmm5",
+		  "cc",
+		  "memory"
     );
 }
 
@@ -242,16 +255,11 @@ void CO_continue(CO_Context* c) {
     current_context->run_state = CO_RUNNING;
 
 	char* stack_top = ((char*)current_context->stack + STACK_SIZE - 32 - sizeof(void*));
+	Registers* caller = &(current_context->caller_registers);
+	Registers* callee = &(current_context->callee_registers);
     // save our registers
-    asm (
+    asm volatile (
         "push %%rax;"
-
-        "lea _exit%=(%%rip), %%rax;"
-        "movq %%rax, %0;"
-		"movq %%rsp, %%rax;"
-		"sub $120, %%rax;"
-		"movq %%rax, -8%0;"
-
         "push %%rbx;"
         "push %%rcx;"
         "push %%rdx;"
@@ -265,37 +273,45 @@ void CO_continue(CO_Context* c) {
         "push %%r13;"
         "push %%r14;"
         "push %%r15;"
-        "sub  $160, %%rsp;"\
-        "movdqa %%xmm6, 144(%%rsp);" \
-        "movdqa %%xmm7, 128(%%rsp);" \
-        "movdqa %%xmm8, 112(%%rsp);" \
-        "movdqa %%xmm9, 96(%%rsp);" \
-        "movdqa %%xmm10, 80(%%rsp);" \
-        "movdqa %%xmm11, 64(%%rsp);" \
-        "movdqa %%xmm12, 48(%%rsp);" \
-        "movdqa %%xmm13, 32(%%rsp);" \
-        "movdqa %%xmm14, 16(%%rsp);" \
-        "movdqa %%xmm15, 0(%%rsp);" \
+        "sub  $176, %%rsp;"\
+        "movdqa %%xmm6,  160(%%rsp);" \
+        "movdqa %%xmm7,  144(%%rsp);" \
+        "movdqa %%xmm8,  128(%%rsp);" \
+        "movdqa %%xmm9,  112(%%rsp);" \
+        "movdqa %%xmm10,  96(%%rsp);" \
+        "movdqa %%xmm11,  80(%%rsp);" \
+        "movdqa %%xmm12,  64(%%rsp);" \
+        "movdqa %%xmm13,  48(%%rsp);" \
+        "movdqa %%xmm14,  32(%%rsp);" \
+        "movdqa %%xmm15,  16(%%rsp);" \
+		"stmxcsr 0(%%rsp);"
+		"fnstcw 4(%%rsp);"
         "push %%rbp;"
         "push %%rsp;"
-        "movq %%rbp, %1;"
-        "movq %%rsp, 8+%P1;"
+        "movq %%rbp, (%%rcx);"
+        "movq %%rsp, 8(%%rcx);"
 
-        "movq 8+%P2, %%rsp;"
-        "movq %2,  %%rbp;"
+        "lea _exit%=(%%rip), %%rbx;"
+        "movq %%rbx, (%%rax);"
+		"movq %%rsp, -8(%%rax);"
+
+        "movq 8(%%rdx), %%rsp;"
+        "movq (%%rdx),  %%rbp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
-        "movdqa 144(%%rsp), %%xmm6;" \
-        "movdqa 128(%%rsp), %%xmm7;" \
-        "movdqa 112(%%rsp), %%xmm8;" \
-        "movdqa 96(%%rsp), %%xmm9;" \
-        "movdqa 80(%%rsp), %%xmm10;" \
-        "movdqa 64(%%rsp), %%xmm11;" \
-        "movdqa 48(%%rsp), %%xmm12;" \
-        "movdqa 32(%%rsp), %%xmm13;" \
-        "movdqa 16(%%rsp), %%xmm14;" \
-        "movdqa 0(%%rsp), %%xmm15;" \
-        "add $160, %%rsp;"
+		"ldmxcsr 0(%%rsp);"
+		"fldcw 4(%%rsp);"
+        "movdqa 160(%%rsp), %%xmm6;" \
+        "movdqa 144(%%rsp), %%xmm7;" \
+        "movdqa 128(%%rsp), %%xmm8;" \
+        "movdqa 112(%%rsp), %%xmm9;" \
+        "movdqa  96(%%rsp), %%xmm10;" \
+        "movdqa  80(%%rsp), %%xmm11;" \
+        "movdqa  64(%%rsp), %%xmm12;" \
+        "movdqa  48(%%rsp), %%xmm13;" \
+        "movdqa  32(%%rsp), %%xmm14;" \
+        "movdqa  16(%%rsp), %%xmm15;" \
+        "add $176, %%rsp;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -319,17 +335,19 @@ void CO_continue(CO_Context* c) {
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
-        "movdqa 144(%%rsp), %%xmm6;" \
-        "movdqa 128(%%rsp), %%xmm7;" \
-        "movdqa 112(%%rsp), %%xmm8;" \
-        "movdqa 96(%%rsp), %%xmm9;" \
-        "movdqa 80(%%rsp), %%xmm10;" \
-        "movdqa 64(%%rsp), %%xmm11;" \
-        "movdqa 48(%%rsp), %%xmm12;" \
-        "movdqa 32(%%rsp), %%xmm13;" \
-        "movdqa 16(%%rsp), %%xmm14;" \
-        "movdqa 0(%%rsp), %%xmm15;" \
-        "add $160, %%rsp;"
+		"ldmxcsr 0(%%rsp);"
+		"fldcw 4(%%rsp);"
+        "movdqa 160(%%rsp), %%xmm6;" \
+        "movdqa 144(%%rsp), %%xmm7;" \
+        "movdqa 128(%%rsp), %%xmm8;" \
+        "movdqa 112(%%rsp), %%xmm9;" \
+        "movdqa  96(%%rsp), %%xmm10;" \
+        "movdqa  80(%%rsp), %%xmm11;" \
+        "movdqa  64(%%rsp), %%xmm12;" \
+        "movdqa  48(%%rsp), %%xmm13;" \
+        "movdqa  32(%%rsp), %%xmm14;" \
+        "movdqa  16(%%rsp), %%xmm15;" \
+        "add $176, %%rsp;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -343,10 +361,17 @@ void CO_continue(CO_Context* c) {
         "pop  %%rdx;"
         "pop  %%rcx;"
         "pop  %%rbx;"
-		"pop %%rax;"
+		"pop  %%rax;"
+        : "+a" (stack_top), "+c" (caller), "+d" (callee)
         :
-        : "m" (*stack_top), "m" (current_context->caller_registers), "m" (current_context->callee_registers)
-        : "%rax"
+        : "xmm0",
+		  "xmm1",
+		  "xmm2",
+		  "xmm3",
+		  "xmm4",
+		  "xmm5",
+		  "cc",
+		  "memory"
     );
 
     if (current_context->run_state == CO_RUNNING) {
@@ -358,6 +383,7 @@ void CO_continue(CO_Context* c) {
 
 void CO_restart(CO_Context* c) {
     assert("why?" && c != NULL);
+    assert("Cannot restart coroutine that has not finished" && c->run_state == CO_FINISHED);
 
     // store "old" context
     CO_Context* oc = current_context;
@@ -368,29 +394,61 @@ void CO_restart(CO_Context* c) {
     current_context->run_state = CO_RUNNING;
 
 	char* stack_top = ((char*)current_context->stack + STACK_SIZE - 32);      //top of stack = bottom of stack + STACK_SIZE
+	Registers* caller = &(current_context->caller_registers);
 
-    // save current registers onto stack
-    SAVE_REGISTERS((current_context->caller_registers));
+    asm volatile (
+        "push %%rax;" \
+        "push %%rbx;" \
+        "push %%rcx;" \
+        "push %%rdx;" \
+        "push %%rsi;" \
+        "push %%rdi;" \
+        "push %%r8;" \
+        "push %%r9;" \
+        "push %%r10;" \
+        "push %%r11;" \
+        "push %%r12;" \
+        "push %%r13;" \
+        "push %%r14;" \
+        "push %%r15;" \
+        "sub  $176, %%rsp;"\
+        "movdqa %%xmm6,  160(%%rsp);" \
+        "movdqa %%xmm7,  144(%%rsp);" \
+        "movdqa %%xmm8,  128(%%rsp);" \
+        "movdqa %%xmm9,  112(%%rsp);" \
+        "movdqa %%xmm10,  96(%%rsp);" \
+        "movdqa %%xmm11,  80(%%rsp);" \
+        "movdqa %%xmm12,  64(%%rsp);" \
+        "movdqa %%xmm13,  48(%%rsp);" \
+        "movdqa %%xmm14,  32(%%rsp);" \
+        "movdqa %%xmm15,  16(%%rsp);" \
+		"stmxcsr 0(%%rsp);"
+		"fnstcw 4(%%rsp);"
+        "push %%rbp;" \
+        "push %%rsp;" \
+        "movq %%rbp, (%%rdx);" \
+        "movq %%rsp, 8(%%rdx);" \
 
-    asm(
 		"movq %%rsp, %%rbp;"
-        "movq %1, %%rsp;"    // set stack pointer to the new stack
-        "call *%0;"          // call 'f', putting the return address as the
+        "movq %%rcx, %%rsp;"    // set stack pointer to the new stack
+        "call *%%rax;"          // call 'f', putting the return address as the
                              // first item on the new stack
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
-        "movdqa 144(%%rsp), %%xmm6;" \
-        "movdqa 128(%%rsp), %%xmm7;" \
-        "movdqa 112(%%rsp), %%xmm8;" \
-        "movdqa 96(%%rsp), %%xmm9;" \
-        "movdqa 80(%%rsp), %%xmm10;" \
-        "movdqa 64(%%rsp), %%xmm11;" \
-        "movdqa 48(%%rsp), %%xmm12;" \
-        "movdqa 32(%%rsp), %%xmm13;" \
-        "movdqa 16(%%rsp), %%xmm14;" \
-        "movdqa 0(%%rsp), %%xmm15;" \
-        "add $160, %%rsp;"
+		"ldmxcsr 0(%%rsp);"
+		"fldcw 4(%%rsp);"
+        "movdqa 160(%%rsp), %%xmm6;" \
+        "movdqa 144(%%rsp), %%xmm7;" \
+        "movdqa 128(%%rsp), %%xmm8;" \
+        "movdqa 112(%%rsp), %%xmm9;" \
+        "movdqa  96(%%rsp), %%xmm10;" \
+        "movdqa  80(%%rsp), %%xmm11;" \
+        "movdqa  64(%%rsp), %%xmm12;" \
+        "movdqa  48(%%rsp), %%xmm13;" \
+        "movdqa  32(%%rsp), %%xmm14;" \
+        "movdqa  16(%%rsp), %%xmm15;" \
+        "add $176, %%rsp;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -405,10 +463,18 @@ void CO_restart(CO_Context* c) {
         "pop  %%rcx;"
         "pop  %%rbx;"
 		"pop %%rax;"
+        : "+a" (current_context->original_function),
+          "+c" (stack_top),
+		  "+d" (caller)
         :
-        : "r" (current_context->original_function),
-          "r" (stack_top)
-        : "%rax"
+        : "xmm0",
+		  "xmm1",
+		  "xmm2",
+		  "xmm3",
+		  "xmm4",
+		  "xmm5",
+		  "cc",
+		  "memory"
     );
 
     // yield sets this to CO_PAUSED, so if it is still CO_RUNNING, we finished
