@@ -1,5 +1,5 @@
 BINARY = co_test
-OBJECTS = test.o co_impl_x86.o
+OBJECTS = test.o co_impl_amd64_linux.o
 HEADERS = co.h
 
 CC = gcc

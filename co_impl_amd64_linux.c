@@ -5,26 +5,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#ifndef thread_local
-# if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_THREADS__
-#  define thread_local _Thread_local
-# elif defined _WIN32 && ( \
-       defined _MSC_VER || \
-       defined __ICL || \
-       defined __DMC__ || \
-       defined __BORLANDC__ )
-#  define thread_local __declspec(thread) 
-/* note that ICC (linux) and Clang are covered by __GNUC__ */
-# elif defined __GNUC__ || \
-       defined __SUNPRO_C || \
-       defined __hpux || \
-       defined __xlC__
-#  define thread_local __thread
-# else
-#  error "Cannot define thread_local"
-# endif
-#endif
-
 // ------------------------------------------------------
 // Types
 // ------------------------------------------------------
@@ -236,6 +216,42 @@ void CO_continue(CO_Context* c) {
     if (current_context->run_state == CO_RUNNING) {
         current_context->run_state = CO_FINISHED;
     }
+    current_context = oc;
+}
+
+void CO_restart(CO_Context* c) {
+    assert("how? why?" && c != NULL);
+
+    // store "old" context
+    CO_Context* oc = current_context;
+
+    current_context = c;
+
+    // set up context for running f
+    current_context->run_state = CO_RUNNING;
+
+    // save current registers onto stack
+    SAVE_REGISTERS((current_context->caller_registers));
+
+    // hack
+    asm(
+        "lea %0, %%rsp;"    // set stack pointer to the new stack
+        "call *%1;"         // call 'f', putting the return address as the
+                            // first item on the new stack
+        :
+        : "m" (*((char*)current_context->stack + STACK_SIZE)),      //top of stack = bottom of stack + STACK_SIZE
+          "m" (current_context->original_function)
+        : "%rax"
+    );
+
+    RESTORE_REGISTERS((current_context->caller_registers));
+
+    // yield sets this to CO_PAUSED, so if it is still CO_RUNNING, we finished
+    if (current_context->run_state == CO_RUNNING) {
+        current_context->run_state = CO_FINISHED;
+    }
+
+    // restore old context
     current_context = oc;
 }
 
