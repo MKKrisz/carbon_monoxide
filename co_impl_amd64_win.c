@@ -54,16 +54,17 @@ typedef struct CO_Context {
         "push %%r13;" \
         "push %%r14;" \
         "push %%r15;" \
-        "push %%xmm6;" \
-        "push %%xmm7;" \
-        "push %%xmm8;" \
-        "push %%xmm9;" \
-        "push %%xmm10;" \
-        "push %%xmm11;" \
-        "push %%xmm12;" \
-        "push %%xmm13;" \
-        "push %%xmm14;" \
-        "push %%xmm15;" \
+        "sub  $160, %%rsp;"\
+        "movdqa %%xmm6, 144(%%rsp)" \
+        "movdqa %%xmm7, 128(%%rsp)" \
+        "movdqa %%xmm8, 112(%%rsp)" \
+        "movdqa %%xmm9, 96(%%rsp)" \
+        "movdqa %%xmm10, 80(%%rsp)" \
+        "movdqa %%xmm11, 64(%%rsp)" \
+        "movdqa %%xmm12, 48(%%rsp)" \
+        "movdqa %%xmm13, 32(%%rsp)" \
+        "movdqa %%xmm14, 16(%%rsp)" \
+        "movdqa %%xmm15, 0(%%rsp)" \
         "push %%rbp;" \
         "push %%rsp;" \
         "movq %%rbp, %0;" \
@@ -131,16 +132,17 @@ CO_Context* CO_start(void (*f)(void)) {
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
-        "pop  %%xmm15;"
-        "pop  %%xmm14;"
-        "pop  %%xmm13;"
-        "pop  %%xmm12;"
-        "pop  %%xmm11;"
-        "pop  %%xmm10;"
-        "pop  %%xmm9;"
-        "pop  %%xmm8;"
-        "pop  %%xmm7;"
-        "pop  %%xmm6;"
+        "movdqa 144(%%rsp), %%xmm6;" \
+        "movdqa 128(%%rsp), %%xmm7;" \
+        "movdqa 112(%%rsp), %%xmm8;" \
+        "movdqa 96(%%rsp), %%xmm9;" \
+        "movdqa 80(%%rsp), %%xmm10;" \
+        "movdqa 64(%%rsp), %%xmm11;" \
+        "movdqa 48(%%rsp), %%xmm12;" \
+        "movdqa 32(%%rsp), %%xmm13;" \
+        "movdqa 16(%%rsp), %%xmm14;" \
+        "movdqa 0(%%rsp), %%xmm15;" \
+        "add $160, %%rsp;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -202,16 +204,17 @@ void CO_yield() {
         "push %%r13;"
         "push %%r14;"
         "push %%r15;"
-        "push %%xmm6;"
-        "push %%xmm7;"
-        "push %%xmm8;"
-        "push %%xmm9;"
-        "push %%xmm10;"
-        "push %%xmm11;"
-        "push %%xmm12;"
-        "push %%xmm13;"
-        "push %%xmm14;"
-        "push %%xmm15;"
+        "sub  $160, %%rsp;"\
+        "movdqa %%xmm6, 144(%%rsp)" \
+        "movdqa %%xmm7, 128(%%rsp)" \
+        "movdqa %%xmm8, 112(%%rsp)" \
+        "movdqa %%xmm9, 96(%%rsp)" \
+        "movdqa %%xmm10, 80(%%rsp)" \
+        "movdqa %%xmm11, 64(%%rsp)" \
+        "movdqa %%xmm12, 48(%%rsp)" \
+        "movdqa %%xmm13, 32(%%rsp)" \
+        "movdqa %%xmm14, 16(%%rsp)" \
+        "movdqa %%xmm15, 0(%%rsp)" \
         "push %%rbp;"
         "push %%rsp;"
         "movq %%rbp, %1;"
@@ -262,16 +265,17 @@ void CO_continue(CO_Context* c) {
         "push %%r13;"
         "push %%r14;"
         "push %%r15;"
-        "push %%xmm6;"
-        "push %%xmm7;"
-        "push %%xmm8;"
-        "push %%xmm9;"
-        "push %%xmm10;"
-        "push %%xmm11;"
-        "push %%xmm12;"
-        "push %%xmm13;"
-        "push %%xmm14;"
-        "push %%xmm15;"
+        "sub  $160, %%rsp;"\
+        "movdqa %%xmm6, 144(%%rsp)" \
+        "movdqa %%xmm7, 128(%%rsp)" \
+        "movdqa %%xmm8, 112(%%rsp)" \
+        "movdqa %%xmm9, 96(%%rsp)" \
+        "movdqa %%xmm10, 80(%%rsp)" \
+        "movdqa %%xmm11, 64(%%rsp)" \
+        "movdqa %%xmm12, 48(%%rsp)" \
+        "movdqa %%xmm13, 32(%%rsp)" \
+        "movdqa %%xmm14, 16(%%rsp)" \
+        "movdqa %%xmm15, 0(%%rsp)" \
         "push %%rbp;"
         "push %%rsp;"
         "movq %%rbp, %1;"
@@ -281,16 +285,17 @@ void CO_continue(CO_Context* c) {
         "movq %2,  %%rbp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
-        "pop  %%xmm15;"
-        "pop  %%xmm14;"
-        "pop  %%xmm13;"
-        "pop  %%xmm12;"
-        "pop  %%xmm11;"
-        "pop  %%xmm10;"
-        "pop  %%xmm9;"
-        "pop  %%xmm8;"
-        "pop  %%xmm7;"
-        "pop  %%xmm6;"
+        "movdqa 144(%%rsp), %%xmm6;" \
+        "movdqa 128(%%rsp), %%xmm7;" \
+        "movdqa 112(%%rsp), %%xmm8;" \
+        "movdqa 96(%%rsp), %%xmm9;" \
+        "movdqa 80(%%rsp), %%xmm10;" \
+        "movdqa 64(%%rsp), %%xmm11;" \
+        "movdqa 48(%%rsp), %%xmm12;" \
+        "movdqa 32(%%rsp), %%xmm13;" \
+        "movdqa 16(%%rsp), %%xmm14;" \
+        "movdqa 0(%%rsp), %%xmm15;" \
+        "add $160, %%rsp;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -314,16 +319,17 @@ void CO_continue(CO_Context* c) {
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
-        "pop  %%xmm15;"
-        "pop  %%xmm14;"
-        "pop  %%xmm13;"
-        "pop  %%xmm12;"
-        "pop  %%xmm11;"
-        "pop  %%xmm10;"
-        "pop  %%xmm9;"
-        "pop  %%xmm8;"
-        "pop  %%xmm7;"
-        "pop  %%xmm6;"
+        "movdqa 144(%%rsp), %%xmm6;" \
+        "movdqa 128(%%rsp), %%xmm7;" \
+        "movdqa 112(%%rsp), %%xmm8;" \
+        "movdqa 96(%%rsp), %%xmm9;" \
+        "movdqa 80(%%rsp), %%xmm10;" \
+        "movdqa 64(%%rsp), %%xmm11;" \
+        "movdqa 48(%%rsp), %%xmm12;" \
+        "movdqa 32(%%rsp), %%xmm13;" \
+        "movdqa 16(%%rsp), %%xmm14;" \
+        "movdqa 0(%%rsp), %%xmm15;" \
+        "add $160, %%rsp;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -374,16 +380,17 @@ void CO_restart(CO_Context* c) {
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
-        "pop  %%xmm15;"
-        "pop  %%xmm14;"
-        "pop  %%xmm13;"
-        "pop  %%xmm12;"
-        "pop  %%xmm11;"
-        "pop  %%xmm10;"
-        "pop  %%xmm9;"
-        "pop  %%xmm8;"
-        "pop  %%xmm7;"
-        "pop  %%xmm6;"
+        "movdqa 144(%%rsp), %%xmm6;" \
+        "movdqa 128(%%rsp), %%xmm7;" \
+        "movdqa 112(%%rsp), %%xmm8;" \
+        "movdqa 96(%%rsp), %%xmm9;" \
+        "movdqa 80(%%rsp), %%xmm10;" \
+        "movdqa 64(%%rsp), %%xmm11;" \
+        "movdqa 48(%%rsp), %%xmm12;" \
+        "movdqa 32(%%rsp), %%xmm13;" \
+        "movdqa 16(%%rsp), %%xmm14;" \
+        "movdqa 0(%%rsp), %%xmm15;" \
+        "add $160, %%rsp;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
