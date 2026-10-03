@@ -5,7 +5,7 @@ CO_impl_init_context:
     push %rbp
     mov %rsp, %rbp
     
-    lea (%rcx, %r8), %rax
+    lea (%rdx, %r8), %rax
     and $-16, %rax
     sub $-32, %rax
     movq %r9,   -8(%rax)
@@ -40,7 +40,7 @@ CO_impl_init_context:
     stmxcsr -240(%rax)
     fnstcw  -236(%rax)
     sub  $240,  %rax
-    movq %rax, (%rdx)
+    movq %rax, (%rcx)
 
     pop %rbp
     ret
@@ -68,9 +68,9 @@ CO_impl_switch_context:
     stmxcsr 0(%rsp)
     fnstcw 4(%rsp)
 
-    movq %rsp, (%rdx)
+    movq %rsp, (%rcx)
 
-    movq (%rcx), %rsp
+    movq (%rdx), %rsp
 
     ldmxcsr 0(%rsp)
     fldcw 4(%rsp)
