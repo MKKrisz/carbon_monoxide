@@ -49,7 +49,7 @@ CO_ExecState CO_get_state(CO_Context* context);
 
 // Creates a coroutine for the function given as parameter and starts executing
 // it
-CO_Context* CO_start(void (*function)(void));
+[[nodiscard]] CO_Context* CO_start(void (*function)(void));
 
 // Gives back execution to the coroutine's caller
 void CO_yield();
