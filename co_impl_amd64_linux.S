@@ -10,6 +10,7 @@ CO_impl_init_context:
     
     lea (%rsi, %rdx), %rax
     and $-16, %rax
+    sub $8, %rax
     movq %rcx,  -8(%rax)
     movq $0,   -16(%rax)
     movq $0,   -24(%rax)
