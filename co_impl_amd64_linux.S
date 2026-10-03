@@ -39,5 +39,3 @@ CO_impl_switch_context:
     pop  %rbp
     pop  %rbx
     ret
-
-
