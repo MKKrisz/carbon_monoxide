@@ -55,16 +55,16 @@ typedef struct CO_Context {
         "push %%r14;" \
         "push %%r15;" \
         "sub  $160, %%rsp;"\
-        "movdqa %%xmm6, 144(%%rsp)" \
-        "movdqa %%xmm7, 128(%%rsp)" \
-        "movdqa %%xmm8, 112(%%rsp)" \
-        "movdqa %%xmm9, 96(%%rsp)" \
-        "movdqa %%xmm10, 80(%%rsp)" \
-        "movdqa %%xmm11, 64(%%rsp)" \
-        "movdqa %%xmm12, 48(%%rsp)" \
-        "movdqa %%xmm13, 32(%%rsp)" \
-        "movdqa %%xmm14, 16(%%rsp)" \
-        "movdqa %%xmm15, 0(%%rsp)" \
+        "movdqa %%xmm6, 144(%%rsp);" \
+        "movdqa %%xmm7, 128(%%rsp);" \
+        "movdqa %%xmm8, 112(%%rsp);" \
+        "movdqa %%xmm9, 96(%%rsp);" \
+        "movdqa %%xmm10, 80(%%rsp);" \
+        "movdqa %%xmm11, 64(%%rsp);" \
+        "movdqa %%xmm12, 48(%%rsp);" \
+        "movdqa %%xmm13, 32(%%rsp);" \
+        "movdqa %%xmm14, 16(%%rsp);" \
+        "movdqa %%xmm15, 0(%%rsp);" \
         "push %%rbp;" \
         "push %%rsp;" \
         "movq %%rbp, %0;" \
@@ -205,16 +205,16 @@ void CO_yield() {
         "push %%r14;"
         "push %%r15;"
         "sub  $160, %%rsp;"\
-        "movdqa %%xmm6, 144(%%rsp)" \
-        "movdqa %%xmm7, 128(%%rsp)" \
-        "movdqa %%xmm8, 112(%%rsp)" \
-        "movdqa %%xmm9, 96(%%rsp)" \
-        "movdqa %%xmm10, 80(%%rsp)" \
-        "movdqa %%xmm11, 64(%%rsp)" \
-        "movdqa %%xmm12, 48(%%rsp)" \
-        "movdqa %%xmm13, 32(%%rsp)" \
-        "movdqa %%xmm14, 16(%%rsp)" \
-        "movdqa %%xmm15, 0(%%rsp)" \
+        "movdqa %%xmm6, 144(%%rsp);" \
+        "movdqa %%xmm7, 128(%%rsp);" \
+        "movdqa %%xmm8, 112(%%rsp);" \
+        "movdqa %%xmm9, 96(%%rsp);" \
+        "movdqa %%xmm10, 80(%%rsp);" \
+        "movdqa %%xmm11, 64(%%rsp);" \
+        "movdqa %%xmm12, 48(%%rsp);" \
+        "movdqa %%xmm13, 32(%%rsp);" \
+        "movdqa %%xmm14, 16(%%rsp);" \
+        "movdqa %%xmm15, 0(%%rsp);" \
         "push %%rbp;"
         "push %%rsp;"
         "movq %%rbp, %1;"
@@ -266,16 +266,16 @@ void CO_continue(CO_Context* c) {
         "push %%r14;"
         "push %%r15;"
         "sub  $160, %%rsp;"\
-        "movdqa %%xmm6, 144(%%rsp)" \
-        "movdqa %%xmm7, 128(%%rsp)" \
-        "movdqa %%xmm8, 112(%%rsp)" \
-        "movdqa %%xmm9, 96(%%rsp)" \
-        "movdqa %%xmm10, 80(%%rsp)" \
-        "movdqa %%xmm11, 64(%%rsp)" \
-        "movdqa %%xmm12, 48(%%rsp)" \
-        "movdqa %%xmm13, 32(%%rsp)" \
-        "movdqa %%xmm14, 16(%%rsp)" \
-        "movdqa %%xmm15, 0(%%rsp)" \
+        "movdqa %%xmm6, 144(%%rsp);" \
+        "movdqa %%xmm7, 128(%%rsp);" \
+        "movdqa %%xmm8, 112(%%rsp);" \
+        "movdqa %%xmm9, 96(%%rsp);" \
+        "movdqa %%xmm10, 80(%%rsp);" \
+        "movdqa %%xmm11, 64(%%rsp);" \
+        "movdqa %%xmm12, 48(%%rsp);" \
+        "movdqa %%xmm13, 32(%%rsp);" \
+        "movdqa %%xmm14, 16(%%rsp);" \
+        "movdqa %%xmm15, 0(%%rsp);" \
         "push %%rbp;"
         "push %%rsp;"
         "movq %%rbp, %1;"
