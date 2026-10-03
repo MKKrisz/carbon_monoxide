@@ -5,6 +5,12 @@
 #include <stdbool.h>
 #include <string.h>
 
+
+// DISCLAIMER: this is very ad-hoc code, written with a lot of AI help
+// (as opposed to the linux impl, which is 100% my mistake.) The code itself
+// was written by me, but there may be parts, the AI got wrong about the
+// assumptions windows has about the stack.
+
 // ------------------------------------------------------
 // Types
 // ------------------------------------------------------
@@ -48,6 +54,16 @@ typedef struct CO_Context {
         "push %%r13;" \
         "push %%r14;" \
         "push %%r15;" \
+        "push %%xmm6;" \
+        "push %%xmm7;" \
+        "push %%xmm8;" \
+        "push %%xmm9;" \
+        "push %%xmm10;" \
+        "push %%xmm11;" \
+        "push %%xmm12;" \
+        "push %%xmm13;" \
+        "push %%xmm14;" \
+        "push %%xmm15;" \
         "push %%rbp;" \
         "push %%rsp;" \
         "movq %%rbp, %0;" \
@@ -115,6 +131,16 @@ CO_Context* CO_start(void (*f)(void)) {
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
+        "pop  %%xmm15;"
+        "pop  %%xmm14;"
+        "pop  %%xmm13;"
+        "pop  %%xmm12;"
+        "pop  %%xmm11;"
+        "pop  %%xmm10;"
+        "pop  %%xmm9;"
+        "pop  %%xmm8;"
+        "pop  %%xmm7;"
+        "pop  %%xmm6;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -176,6 +202,16 @@ void CO_yield() {
         "push %%r13;"
         "push %%r14;"
         "push %%r15;"
+        "push %%xmm6;"
+        "push %%xmm7;"
+        "push %%xmm8;"
+        "push %%xmm9;"
+        "push %%xmm10;"
+        "push %%xmm11;"
+        "push %%xmm12;"
+        "push %%xmm13;"
+        "push %%xmm14;"
+        "push %%xmm15;"
         "push %%rbp;"
         "push %%rsp;"
         "movq %%rbp, %1;"
@@ -226,6 +262,16 @@ void CO_continue(CO_Context* c) {
         "push %%r13;"
         "push %%r14;"
         "push %%r15;"
+        "push %%xmm6;"
+        "push %%xmm7;"
+        "push %%xmm8;"
+        "push %%xmm9;"
+        "push %%xmm10;"
+        "push %%xmm11;"
+        "push %%xmm12;"
+        "push %%xmm13;"
+        "push %%xmm14;"
+        "push %%xmm15;"
         "push %%rbp;"
         "push %%rsp;"
         "movq %%rbp, %1;"
@@ -235,6 +281,16 @@ void CO_continue(CO_Context* c) {
         "movq %2,  %%rbp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
+        "pop  %%xmm15;"
+        "pop  %%xmm14;"
+        "pop  %%xmm13;"
+        "pop  %%xmm12;"
+        "pop  %%xmm11;"
+        "pop  %%xmm10;"
+        "pop  %%xmm9;"
+        "pop  %%xmm8;"
+        "pop  %%xmm7;"
+        "pop  %%xmm6;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -258,6 +314,16 @@ void CO_continue(CO_Context* c) {
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
+        "pop  %%xmm15;"
+        "pop  %%xmm14;"
+        "pop  %%xmm13;"
+        "pop  %%xmm12;"
+        "pop  %%xmm11;"
+        "pop  %%xmm10;"
+        "pop  %%xmm9;"
+        "pop  %%xmm8;"
+        "pop  %%xmm7;"
+        "pop  %%xmm6;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
@@ -308,6 +374,16 @@ void CO_restart(CO_Context* c) {
 		"movq %%rbp, %%rsp;"
         "pop  %%rsp;"
         "pop  %%rbp;"
+        "pop  %%xmm15;"
+        "pop  %%xmm14;"
+        "pop  %%xmm13;"
+        "pop  %%xmm12;"
+        "pop  %%xmm11;"
+        "pop  %%xmm10;"
+        "pop  %%xmm9;"
+        "pop  %%xmm8;"
+        "pop  %%xmm7;"
+        "pop  %%xmm6;"
         "pop  %%r15;"
         "pop  %%r14;"
         "pop  %%r13;"
