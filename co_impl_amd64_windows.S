@@ -7,7 +7,7 @@ CO_impl_init_context:
     
     lea (%rdx, %r8), %rax
     and $-16, %rax
-    sub $-32, %rax
+    sub $40, %rax
     movq %r9,   -8(%rax)
     movq $0,   -16(%rax)
     movq $0,   -24(%rax)
@@ -48,7 +48,9 @@ CO_impl_init_context:
     movq $0,   -224(%rax)
     movq $0,   -232(%rax)
 
+    movq $0,   -240(%rax)
     movq $0,   -248(%rax)
+
     stmxcsr -248(%rax)
     fnstcw  -244(%rax)
     sub  $248,  %rax
@@ -66,17 +68,17 @@ CO_impl_switch_context:
     push %r13
     push %r14
     push %r15
-    sub  $168, %rsp
-    movdqa %xmm6,  160(%rsp)
-    movdqa %xmm7,  144(%rsp)
-    movdqa %xmm8,  128(%rsp)
-    movdqa %xmm9,  112(%rsp)
-    movdqa %xmm10,  96(%rsp)
-    movdqa %xmm11,  80(%rsp)
-    movdqa %xmm12,  64(%rsp)
-    movdqa %xmm13,  48(%rsp)
-    movdqa %xmm14,  32(%rsp)
-    movdqa %xmm15,  16(%rsp)
+    sub  $176, %rsp
+    movdqu %xmm6,  160(%rsp)
+    movdqu %xmm7,  144(%rsp)
+    movdqu %xmm8,  128(%rsp)
+    movdqu %xmm9,  112(%rsp)
+    movdqu %xmm10,  96(%rsp)
+    movdqu %xmm11,  80(%rsp)
+    movdqu %xmm12,  64(%rsp)
+    movdqu %xmm13,  48(%rsp)
+    movdqu %xmm14,  32(%rsp)
+    movdqu %xmm15,  16(%rsp)
     stmxcsr 0(%rsp)
     fnstcw 4(%rsp)
 
@@ -86,17 +88,17 @@ CO_impl_switch_context:
 
     ldmxcsr 0(%rsp)
     fldcw 4(%rsp)
-    movdqa 160(%rsp), %xmm6
-    movdqa 144(%rsp), %xmm7
-    movdqa 128(%rsp), %xmm8
-    movdqa 112(%rsp), %xmm9
-    movdqa  96(%rsp), %xmm10
-    movdqa  80(%rsp), %xmm11
-    movdqa  64(%rsp), %xmm12
-    movdqa  48(%rsp), %xmm13
-    movdqa  32(%rsp), %xmm14
-    movdqa  16(%rsp), %xmm15
-    add  $168, %rsp
+    movdqu 160(%rsp), %xmm6
+    movdqu 144(%rsp), %xmm7
+    movdqu 128(%rsp), %xmm8
+    movdqu 112(%rsp), %xmm9
+    movdqu  96(%rsp), %xmm10
+    movdqu  80(%rsp), %xmm11
+    movdqu  64(%rsp), %xmm12
+    movdqu  48(%rsp), %xmm13
+    movdqu  32(%rsp), %xmm14
+    movdqu  16(%rsp), %xmm15
+    add  $176, %rsp
     pop  %r15
     pop  %r14
     pop  %r13
