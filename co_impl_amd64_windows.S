@@ -1,9 +1,6 @@
 .globl CO_impl_init_context
 .globl CO_impl_switch_context
 
-.type CO_impl_switch_context, @function
-.type CO_impl_init_context, @function
-
 CO_impl_init_context:
     push %rbp
     mov %rsp, %rbp
