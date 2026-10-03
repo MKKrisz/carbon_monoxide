@@ -37,7 +37,9 @@ CO_impl_init_context:
     movq $0,   -216(%rax)
     movq $0,   -224(%rax)
     movq $0,   -232(%rax)
-    sub  $232,  %rax
+    stmxcsr -240(%rax)
+    fnstcw  -236(%rax)
+    sub  $240,  %rax
     movq %rax, (%rdx)
 
     pop %rbp
@@ -52,7 +54,7 @@ CO_impl_switch_context:
     push %r13
     push %r14
     push %r15
-    sub  $184, %rsp
+    sub  $176, %rsp
     movdqa %xmm6,  160(%rsp)
     movdqa %xmm7,  144(%rsp)
     movdqa %xmm8,  128(%rsp)
@@ -82,7 +84,7 @@ CO_impl_switch_context:
     movdqa  48(%rsp), %xmm13
     movdqa  32(%rsp), %xmm14
     movdqa  16(%rsp), %xmm15
-    add  $184, %rsp
+    add  $176, %rsp
     pop  %r15
     pop  %r14
     pop  %r13
