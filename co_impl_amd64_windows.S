@@ -52,7 +52,7 @@ CO_impl_switch_context:
     push %r13
     push %r14
     push %r15
-    sub  $176, %rsp
+    sub  $184, %rsp
     movdqa %xmm6,  160(%rsp)
     movdqa %xmm7,  144(%rsp)
     movdqa %xmm8,  128(%rsp)
@@ -82,6 +82,7 @@ CO_impl_switch_context:
     movdqa  48(%rsp), %xmm13
     movdqa  32(%rsp), %xmm14
     movdqa  16(%rsp), %xmm15
+    add  $184, %rsp
     pop  %r15
     pop  %r14
     pop  %r13
