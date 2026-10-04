@@ -115,10 +115,69 @@ void test5() {
     printf("\nFinished.\n");
 }
 
+void co_test6_2() {
+    printf("I am alive!\n");
+    CO_Context* ctx = CO_get_current_context();
+    assert("I should be dead..." && CO_get_state(ctx) == CO_RUNNING);
+    CO_yield();
+    printf("I am back!\n");
+    ctx = CO_get_current_context();
+    assert("I should be dead..." && CO_get_state(ctx) == CO_RUNNING);
+}
+
+void co_test6_1() {
+    CO_Context* myself = CO_get_current_context();
+    printf("I am alive!\n");
+    printf("Starting co_test6_2\n\n");
+    CO_Context* ctx = CO_start(co_test6_2);
+    printf("Back to co_test6_1");
+    assert("Wha?!" && CO_get_current_context() == myself);
+    assert("Bad state!" && CO_get_state(ctx) == CO_PAUSED);
+    
+    CO_yield();
+
+    printf("I am back!\n");
+    printf("Continuing co_test6_2\n\n");
+    CO_continue(ctx);
+    printf("Back to co_test6_1\n");
+    assert("Wha?!" && CO_get_current_context() == myself);
+    assert("Bad state!" && CO_get_state(ctx) == CO_FINISHED);
+    CO_destroy_context(ctx);
+}
+
+void test6() {
+    printf("Starting co_test6_1\n\n");
+    CO_Context* ctx = CO_start(co_test6_1);
+    printf("yielded\n");
+    assert("Door stuck!" && CO_get_current_context() == NULL);
+    assert("Bad state!" && CO_get_state(ctx) == CO_PAUSED);
+    printf("continuing\n");
+    CO_continue(ctx);
+    printf("fin\n");
+    assert("Door stuck!" && CO_get_current_context() == NULL);
+    assert("Bad state!" && CO_get_state(ctx) == CO_FINISHED);
+    CO_destroy_context(ctx);
+}
+
+void co_test7_1(void* param) {
+    printf("Now with parameters! %lld\n", (long long)param);
+}
+
+void test7() {
+    printf("\nStarting co_test7_1\n\n");
+    CO_Context* ctx = CO_start_1(co_test7_1, (void*)149);
+    assert("State not set to finished" && CO_get_state(ctx) == CO_FINISHED);
+    assert("Still running context reported" && CO_get_current_context() == nullptr);
+    CO_destroy_context(ctx);
+}
+
+
 int main() {
     test1();
     test2();
     test3();
     test4();
     test5();
+    test6();
+    test7();
 }

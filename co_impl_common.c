@@ -13,6 +13,8 @@ typedef struct {
 typedef struct CO_Context {
     void* stack;
     void (*function)(void);
+    size_t param_count;
+    void** params;
     CO_InternalContext caller;
     CO_InternalContext callee;
     CO_ExecState run_state;
@@ -53,6 +55,8 @@ CO_ExecState CO_get_state(CO_Context* ctx) { return ctx->run_state; }
     c->stack = new_stack_addr;
     c->dynamic_stack = true;
     c->run_state = CO_INITIALIZED;
+    c->params = NULL;
+    c->param_count = 0;
     return c;
 }
 
@@ -63,7 +67,11 @@ CO_ExecState CO_get_state(CO_Context* ctx) { return ctx->run_state; }
 
     CO_Context* c = current_context;
     c->run_state = CO_RUNNING;
-    c->function();
+    switch (c->param_count) {
+        case 0: c->function(); break;
+        case 1: ((void (*)(void*))c->function)(c->params[0]); break;
+        default: assert("More than 1 parameter is not supported for now." && false);
+    }
     c->run_state = CO_FINISHED;
     CO_impl_switch_context(&c->callee, &c->caller);
 
@@ -85,6 +93,24 @@ static void CO_init_context(CO_Context* ctx) {
     CO_Context* c = CO_make_context();
     
     c->function = f;
+    CO_init_context(c);
+
+    current_context = c;
+
+    CO_impl_switch_context(&c->caller, &c->callee);
+
+    current_context = old;
+    return c;
+}
+
+[[nodiscard]] CO_Context* CO_start_1(void (*f)(void*), void* param1) {
+    CO_Context* old = current_context;
+    CO_Context* c = CO_make_context();
+    
+    c->function = (void (*)(void))f;
+    c->param_count = 1;
+    c->params = malloc(sizeof(void*));
+    c->params[0] = param1;
     CO_init_context(c);
 
     current_context = c;
@@ -147,6 +173,7 @@ void CO_destroy_context(CO_Context* c) {
     // originally planned for a way to self-manage the stack allocation, that
     // did not make the cut..
     if (c->dynamic_stack) {free(c->stack);}
+    if (c->param_count > 0) {free(c->params);}
 
     // so that we don't upset our functions with freed memory
     c->run_state = CO_UNKNOWN;
