@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // What I want to be able to do:
 //
 //  - call a function
@@ -66,4 +70,7 @@ void CO_restart(CO_Context* c);
 // finished.
 void CO_destroy_context(CO_Context* c);
 
+#ifdef __cplusplus
+}
+#endif
 
